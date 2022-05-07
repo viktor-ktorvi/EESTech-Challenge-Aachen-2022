@@ -50,7 +50,7 @@ if __name__ == '__main__':
     chunk_size = hyperparams['chunk_size']
     n_pca = hyperparams['n_pca']
 
-    load_old_data = True
+    load_old_data = False
     data_savepath = 'train_data.npz'
 
     if load_old_data:
