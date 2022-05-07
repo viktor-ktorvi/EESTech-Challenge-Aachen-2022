@@ -9,9 +9,34 @@ import json
 
 import datetime
 
+
+def extract_from_subfolders(folder, subfolders, extension, max_files, chunk_size, n_pca, label_val):
+    features = None
+    labels = None
+    for i in range(len(subfolders)):
+        if i == 0:
+            features = extract_from_folder(folder, subfolders[i], extension, max_files, shuffle=False,
+                                           chunk_size=chunk_size,
+                                           n_pca=n_pca).to_numpy()
+
+            labels = np.zeros(features.shape[1]) + label_val
+        else:
+            features = np.concatenate((
+                extract_from_folder(folder, subfolders[i], extension, max_files, shuffle=False, chunk_size=chunk_size,
+                                    n_pca=n_pca).to_numpy(),
+                features
+            ), axis=1)
+            labels = np.concatenate((
+                np.zeros(features.shape[1] - len(labels)) + label_val,
+                labels
+            ))
+
+    return features, labels
+
+
 if __name__ == '__main__':
     folder = 'data'
-    subfolder = 'quasi-static'
+    subfolders = ['quasi-static', 'activity-anxionsness', 'relaxed-after-activity']
     extension = '.npz'
 
     hyperparams = {
@@ -25,20 +50,29 @@ if __name__ == '__main__':
     chunk_size = hyperparams['chunk_size']
     n_pca = hyperparams['n_pca']
 
-    features_quasi = extract_from_folder(folder, subfolder, extension, max_files, shuffle=False, chunk_size=chunk_size,
-                                         n_pca=n_pca).to_numpy()
+    load_old_data = False
+    data_savepath = 'train_data.npz'
 
-    labels_quasi = np.zeros(features_quasi.shape[1])
+    if load_old_data:
+        data_dict = np.load(data_savepath)
+        X = data_dict['X']
+        y = data_dict['y']
+    else:
 
-    subfolder = 'moving'
+        features_quasi, labels_quasi = extract_from_subfolders(folder, subfolders, extension, max_files, chunk_size,
+                                                               n_pca,
+                                                               label_val=0)
 
-    features_moving = extract_from_folder(folder, subfolder, extension, max_files, shuffle=False, chunk_size=chunk_size,
-                                          n_pca=n_pca).to_numpy()
+        subfolders = ['moving']
 
-    labels_moving = np.ones(features_moving.shape[1])
+        features_moving, labels_moving = extract_from_subfolders(folder, subfolders, extension, max_files, chunk_size,
+                                                                 n_pca,
+                                                                 label_val=1)
 
-    X = np.hstack((features_quasi, features_moving)).T
-    y = np.hstack((labels_quasi, labels_moving))
+        X = np.concatenate((features_quasi, features_moving), axis=1).T
+        y = np.concatenate((labels_quasi, labels_moving))
+
+        np.savez(data_savepath, X=X, y=y)
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
 
@@ -64,7 +98,7 @@ if __name__ == '__main__':
     print('Accuracy ', acc)
 
     datetime_now = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    savepath = 'boost_acc_{:d}_'.format(round(acc*100)) + datetime_now
+    savepath = 'boost_acc_{:d}_'.format(round(acc * 100)) + datetime_now
     os.mkdir(savepath, 0o666)
 
     with open(os.path.join(savepath, 'hyperparams.json'), 'w') as fp:
