@@ -16,7 +16,9 @@ if __name__ == '__main__':
 
     hyperparams = {
         'chunk_size': 1000,
-        'n_pca': 10
+        'n_pca': 10,
+        'num_boost_round': 1000,
+        'early_stopping_rounds': 20
     }
 
     max_files = 100
@@ -52,7 +54,8 @@ if __name__ == '__main__':
     }
     # training, we set the early stopping rounds parameter
     bst = xgb.train(params, dtrain, evals=[(dtrain, "train"), (dtest, "validation")],
-                    num_boost_round=1000, early_stopping_rounds=20)
+                    num_boost_round=hyperparams['num_boost_round'],
+                    early_stopping_rounds=hyperparams['early_stopping_rounds'])
     # make prediction
     # ntree_limit should use the optimal number of trees https://mljar.com/blog/xgboost-save-load-python/
     preds_test = np.round(bst.predict(dtest, ntree_limit=bst.best_ntree_limit))
@@ -61,8 +64,11 @@ if __name__ == '__main__':
     print('Accuracy ', acc)
 
     datetime_now = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    savepath = 'boost_' + datetime_now
+    savepath = 'boost_acc_{:.2f}_'.format(acc) + datetime_now
     os.mkdir(savepath, 0o666)
+
+    with open(os.path.join(savepath, 'hyperparams.json'), 'w') as fp:
+        json.dump(hyperparams, fp)
 
     with open(os.path.join(savepath, 'train_params.json'), 'w') as fp:
         json.dump(params, fp)
