@@ -64,11 +64,13 @@ if __name__ == '__main__':
     print('Accuracy ', acc)
 
     datetime_now = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    savepath = 'boost_acc_{:.2f}_'.format(acc) + datetime_now
+    savepath = 'boost_acc_{:d}_'.format(round(acc*100)) + datetime_now
     os.mkdir(savepath, 0o666)
 
     with open(os.path.join(savepath, 'hyperparams.json'), 'w') as fp:
         json.dump(hyperparams, fp)
+
+    params.update({'best_ntree_limit': bst.best_ntree_limit})
 
     with open(os.path.join(savepath, 'train_params.json'), 'w') as fp:
         json.dump(params, fp)
