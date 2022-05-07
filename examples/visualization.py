@@ -17,14 +17,15 @@ def plot_recording(radar_files_dict, fig, ax, color=None):
     return fig
 
 
-def visualize(folder, filenames, title, colors=None):
+def visualize(folder, filenames, title, colors=None, figsize=None):
     """
     Visualize one or multiple recordings. Plots abses[0..2] and phase
     :param folder: str
     :param filenames: str or list of str
     :param title: str
     :param colors: str or list of str
-    :return:
+    :param figsize: tuple
+    :return: figure
     """
     if type(filenames) is not list:
         filenames = [filenames]
@@ -35,24 +36,29 @@ def visualize(folder, filenames, title, colors=None):
         if colors is None:
             colors = [None] * len(filenames)
 
-    fig, ax = plt.subplots(4, 1)
+    if figsize is not None:
+        fig, ax = plt.subplots(4, 1, figsize=figsize)
+    else:
+        fig, ax = plt.subplots(4, 1)
     fig.suptitle(title)
     for i in range(len(filenames)):
         radar_files_dict = load_radar_dict(folder, filenames[i])
         fig = plot_recording(radar_files_dict, fig, ax, color=colors[i])
 
-    fig.show()
+    return fig
 
 
 # %%
 if __name__ == '__main__':
+    figsize = (6, 6)
     folder = 'recordings'
     filename = 'farness_0_moving_1_radar_data_2022_05_06_20_24_36.npz'
 
     title = 'Visualize one'
     color = 'blue'
 
-    visualize(folder, filename, title, color)
+    fig = visualize(folder, filename, title, color, figsize=figsize)
+    fig.show()
 
     # %%
     folder = 'recordings'
@@ -61,4 +67,5 @@ if __name__ == '__main__':
 
     colors = ['b', 'r']
     title = 'Compare'
-    visualize(folder, filenames, title, colors)
+    fig = visualize(folder, filenames, title, colors, figsize=figsize)
+    fig.show()
