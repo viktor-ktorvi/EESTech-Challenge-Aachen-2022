@@ -1,6 +1,7 @@
 from matplotlib import pyplot as plt
+import os
 
-from utils import load_radar_dict
+from utils import load_radar_dict, get_all_files, get_filenames
 
 
 def plot_recording(radar_files_dict, fig, ax, color=None):
@@ -47,6 +48,17 @@ def visualize(folder, filenames, title, colors=None, figsize=None):
 
     return fig
 
+
+def compare_within_class(data_folder, subfolder, extension, max_files, figsize, shuffle=True):
+    filenames = get_filenames(data_folder, subfolder, extension, max_files, shuffle)
+
+    title = 'Compare ' + subfolder
+    fig = visualize(folder=os.path.join(data_folder, subfolder),
+                    filenames=filenames,
+                    title=title,
+                    figsize=figsize)
+
+    return filenames
 
 # %%
 if __name__ == '__main__':
