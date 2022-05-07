@@ -2,6 +2,8 @@ import os
 import numpy as np
 import random
 
+import pandas as pd
+
 
 def radar2dict(radar_files):
     radar_files_dict = {}
@@ -16,6 +18,10 @@ def load_radar_dict(folder, filename):
     radar_files = np.load(path)
 
     return radar2dict(radar_files)
+
+
+def load_as_dataframe(folder, filename):
+    return pd.DataFrame.from_dict(dict2pandas_compatible_dict(load_radar_dict(folder, filename)))
 
 
 def dict2pandas_compatible_dict(radar_dict):
