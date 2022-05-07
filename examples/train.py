@@ -6,14 +6,13 @@ import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-
 if __name__ == '__main__':
     folder = 'data'
     subfolder = 'quasi-static'
     extension = '.npz'
     max_files = 100
-    chunk_size = 5000
-    n_pca = 2
+    chunk_size = 1000
+    n_pca = 10
 
     features_quasi = extract_from_folder(folder, subfolder, extension, max_files, shuffle=False, chunk_size=chunk_size,
                                          n_pca=n_pca).to_numpy()
@@ -36,9 +35,15 @@ if __name__ == '__main__':
     dtest = xgb.DMatrix(data=X_test, label=y_test)
 
     # TODO Grid search
-    param = {'max_depth': 2, 'eta': 1, 'objective': 'binary:logistic'}
-    num_round = 10
-    bst = xgb.train(param, dtrain, num_round)
+    # https://xgboost.readthedocs.io/en/stable/parameter.html
+    # We need to define parameters as dict
+    params = {
+        "learning_rate": 0.3,
+        "max_depth": 3
+    }
+    # training, we set the early stopping rounds parameter
+    bst = xgb.train(params, dtrain, evals=[(dtrain, "train"), (dtest, "validation")],
+                    num_boost_round=1000, early_stopping_rounds=20)
     # make prediction
     preds_test = np.round(bst.predict(dtest))
 
@@ -46,5 +51,3 @@ if __name__ == '__main__':
     print('Accuracy ', acc)
 
     # bst.save_model('model_file_name_{:f}_acc.json'.format(acc))
-
-
