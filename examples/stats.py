@@ -7,7 +7,7 @@ from tqdm import tqdm
 from sklearn.decomposition import PCA
 
 
-def extract_features(dfs, chunk_size, n_pca=None):
+def extract_features(dfs, chunk_size, n_pca=None, subtract_mean=True):
     chunks = []
     for i in range(len(dfs)):
         chunks += np.array_split(dfs[i], len(dfs[i]) // chunk_size)
@@ -15,6 +15,8 @@ def extract_features(dfs, chunk_size, n_pca=None):
     num_features = 7 * chunks[0].shape[1]
     feature_matrix = np.zeros((num_features, len(chunks)))
     for i in tqdm(range(len(chunks))):
+        if subtract_mean:
+            chunks[i] -= chunks[i].mean()
         single_chunk = chunks[i].describe()
         transposed = single_chunk.T
         feature_matrix[:, i] = transposed.drop(
@@ -42,7 +44,7 @@ def extract_from_folder(folder, subfolder, extension, max_files, shuffle=False, 
 
 if __name__ == '__main__':
     folder = 'data'
-    subfolder = 'quasi-static'
+    subfolder = 'activity-anxionsness'
     extension = '.npz'
     max_files = 100
     chunk_size = 1000
