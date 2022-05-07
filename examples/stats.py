@@ -44,9 +44,26 @@ if __name__ == '__main__':
     folder = 'data'
     subfolder = 'quasi-static'
     extension = '.npz'
-    max_files = 3
-    chunk_size = 2000
-    n_pca = 11
+    max_files = 100
+    chunk_size = 1000
+    n_pca = 2
 
-    features = extract_from_folder(folder, subfolder, extension, max_files, shuffle=False, chunk_size=chunk_size,
-                                   n_pca=n_pca)
+    features_quasi = extract_from_folder(folder, subfolder, extension, max_files, shuffle=False, chunk_size=chunk_size,
+                                         n_pca=n_pca)
+
+    labels_quasi = pd.DataFrame(np.zeros(features_quasi.shape[1]))
+
+    subfolder = 'moving'
+
+    features_moving = extract_from_folder(folder, subfolder, extension, max_files, shuffle=False, chunk_size=chunk_size,
+                                          n_pca=n_pca)
+
+    labels_moving = pd.DataFrame(np.zeros(features_moving.shape[1]))
+
+    f_quasi_np = features_quasi.to_numpy()
+    f_moving_np = features_moving.to_numpy()
+
+    plt.figure()
+    plt.scatter(f_quasi_np[0, :], f_quasi_np[1, :], marker='x', color='b')
+    plt.scatter(f_moving_np[0, :], f_moving_np[1, :], marker='x', color='r')
+    plt.show()
