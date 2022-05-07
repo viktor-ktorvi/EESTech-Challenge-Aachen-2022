@@ -3,19 +3,6 @@ import os
 import pandas as pd
 
 
-def dict2pandas_compatible_dict(radar_dict):
-    pd_comptible_dict = {}
-    abses = radar_dict['abses']
-    phases = radar_dict['phases']
-
-    for i in range(abses.shape[0]):
-        pd_comptible_dict['abses' + str(i)] = abses[i, :]
-
-    pd_comptible_dict['phases'] = phases
-
-    return pd_comptible_dict
-
-
 if __name__ == '__main__':
     folder = 'data'
     subfolder = 'quasi-static'

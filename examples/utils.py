@@ -18,6 +18,19 @@ def load_radar_dict(folder, filename):
     return radar2dict(radar_files)
 
 
+def dict2pandas_compatible_dict(radar_dict):
+    pd_comptible_dict = {}
+    abses = radar_dict['abses']
+    phases = radar_dict['phases']
+
+    for i in range(abses.shape[0]):
+        pd_comptible_dict['abses' + str(i)] = abses[i, :]
+
+    pd_comptible_dict['phases'] = phases
+
+    return pd_comptible_dict
+
+
 def get_all_files(folder, extension):
     files = []
     for file in os.listdir(folder):
