@@ -5,6 +5,7 @@ import xgboost as xgb
 import os
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+from sklearn.decomposition import PCA
 import json
 
 import datetime
@@ -40,8 +41,8 @@ if __name__ == '__main__':
     extension = '.npz'
 
     hyperparams = {
-        'chunk_size': 1000,
-        'n_pca': 10,
+        'chunk_size': 3000,
+        'n_pca': None,
         'num_boost_round': 1000,
         'early_stopping_rounds': 20
     }
@@ -50,7 +51,7 @@ if __name__ == '__main__':
     chunk_size = hyperparams['chunk_size']
     n_pca = hyperparams['n_pca']
 
-    load_old_data = False
+    load_old_data = True
     data_savepath = 'train_data.npz'
 
     if load_old_data:
@@ -60,19 +61,25 @@ if __name__ == '__main__':
     else:
 
         features_quasi, labels_quasi = extract_from_subfolders(folder, subfolders, extension, max_files, chunk_size,
-                                                               n_pca,
+                                                               n_pca=None,
                                                                label_val=0)
 
         subfolders = ['moving']
 
         features_moving, labels_moving = extract_from_subfolders(folder, subfolders, extension, max_files, chunk_size,
-                                                                 n_pca,
+                                                                 n_pca=None,
                                                                  label_val=1)
 
         X = np.concatenate((features_quasi, features_moving), axis=1).T
         y = np.concatenate((labels_quasi, labels_moving))
 
         np.savez(data_savepath, X=X, y=y)
+
+    if n_pca is not None:
+        pca = PCA(n_components=n_pca)
+        pca.fit(X.T)
+
+        X = pca.components_.T
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
 
