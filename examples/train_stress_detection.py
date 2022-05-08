@@ -1,5 +1,5 @@
 import numpy as np
-
+from sklearn.decomposition import PCA
 from utils import get_filenames, load_as_dataframe
 from stats import get_chunks
 import os
@@ -7,6 +7,7 @@ import pandas as pd
 from spectrum import butter_bandpass
 from chunk_spectrum import filter_dataframe, chunk_fft
 from tqdm import tqdm
+from matplotlib import pyplot as plt
 
 
 def extract_stress_features(dfs, chunk_size, Fs, donwsample_factor, Nfft, window_type):
@@ -51,14 +52,16 @@ def extract_stress_from_folder(folder, subfolder, extension, max_files, shuffle,
 
 
 def extract_stress_from_subfolders(folder, subfolders, extension, max_files, shuffle, chunk_size, Fs, donwsample_factor,
-                                   Nfft, window_type):
+                                   Nfft, window_type, label_val=0):
     matrices = []
     for subfolder in subfolders:
         matrices.append(extract_stress_from_folder(folder, subfolder, extension, max_files, shuffle, chunk_size, Fs,
                                                    donwsample_factor,
                                                    Nfft, window_type))
 
-    return np.concatenate(matrices)
+    features = np.concatenate(matrices)
+    label = np.zeros(features.shape[0]) + label_val
+    return features, label
 
 
 if __name__ == '__main__':
@@ -74,13 +77,27 @@ if __name__ == '__main__':
     window_type = 'hamming'
     relaxed_subfolders = ['relaxed-after-activity']
 
-    relaxed_features = extract_stress_from_subfolders(folder, relaxed_subfolders, extension, max_files, shuffle,
-                                                      chunk_size, Fs,
-                                                      donwsample_factor,
-                                                      Nfft, window_type)
+    relaxed_features, relaxed_label = extract_stress_from_subfolders(folder, relaxed_subfolders, extension, max_files,
+                                                                     shuffle,
+                                                                     chunk_size, Fs,
+                                                                     donwsample_factor,
+                                                                     Nfft, window_type, label_val=0)
 
     active_subfolders = ['activity-anxionsness']
-    active_features = extract_stress_from_subfolders(folder, active_subfolders, extension, max_files, shuffle,
-                                                     chunk_size, Fs,
-                                                     donwsample_factor,
-                                                     Nfft, window_type)
+    active_features, active_label = extract_stress_from_subfolders(folder, active_subfolders, extension, max_files,
+                                                                   shuffle,
+                                                                   chunk_size, Fs,
+                                                                   donwsample_factor,
+                                                                   Nfft, window_type, label_val=1)
+
+    X = np.concatenate((relaxed_features, active_features), axis=0)
+    y = np.concatenate((relaxed_label, active_label))
+
+    n_pca = None
+    if n_pca is not None:
+        pca = PCA(n_components=n_pca)
+        pca.fit(X.T)
+
+        X = pca.components_.T
+
+
