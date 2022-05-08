@@ -22,6 +22,14 @@ def my_fft(x, Fs, donwsample_factor=1, Nfft=1024, window_type=None):
     return amp, phase, faxis
 
 
+def butter_bandpass(lowcut, highcut, fs, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = signal.butter(order, [low, high], btype='band')
+    return b, a
+
+
 if __name__ == '__main__':
     """
     0. Do we bandpass filter before hand? Yeah, why not?
@@ -42,7 +50,37 @@ if __name__ == '__main__':
     for i in range(len(f)):
         x += a[i] * np.sin(2 * np.pi * f[i] * t)
 
-    flim = 3
+    flim = 5
+
+    fs_downsampled = Fs / 100
+    # TODO it seems to be better to filter a downsampled signal. Try it out
+
+    plt.figure()
+    plt.title('Different filer orders for heart rate')
+    for order in [1, 2, 3, 4, 5, 6, 7, 8]:
+        b, a = butter_bandpass(lowcut=0.8, highcut=2, fs=fs_downsampled, order=order)
+        w, h = signal.freqz(b, a, worN=2000)
+        plt.plot((fs_downsampled * 0.5 / np.pi) * w, abs(h), label="order = %d" % order)
+
+    plt.xlim([0, 5])
+    plt.xlabel('f Hz')
+    plt.legend()
+    plt.show()
+
+    plt.figure()
+    plt.title('Different filer orders for breathing rate')
+    for order in [1, 2, 3, 4, 5, 6]:
+        b, a = butter_bandpass(lowcut=0.2, highcut=0.5, fs=fs_downsampled, order=order)
+        w, h = signal.freqz(b, a, worN=2000)
+        plt.plot((fs_downsampled * 0.5 / np.pi) * w, abs(h), label="order = %d" % order)
+
+    plt.xlim([0, 5])
+    plt.xlabel('f Hz')
+    plt.legend()
+    plt.show()
+
+    b, a = butter_bandpass(lowcut=0.8, highcut=2, fs=Fs, order=3)
+    x = signal.filtfilt(b, a, x)
 
     plt.figure()
     plt.plot(t, x)
