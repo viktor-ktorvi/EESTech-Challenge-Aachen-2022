@@ -5,9 +5,13 @@ from stats import get_chunks
 import os
 import pandas as pd
 from spectrum import butter_bandpass
+from sklearn.model_selection import train_test_split
 from chunk_spectrum import filter_dataframe, chunk_fft
+from sklearn.metrics import accuracy_score
 from tqdm import tqdm
 from matplotlib import pyplot as plt
+from sklearn import svm
+from train_moving_detection import extract_from_subfolders
 
 
 def extract_stress_features(dfs, chunk_size, Fs, donwsample_factor, Nfft, window_type):
@@ -76,21 +80,35 @@ if __name__ == '__main__':
     Nfft = 2 ** 9
     window_type = 'hamming'
     relaxed_subfolders = ['relaxed-after-activity']
-
-    relaxed_features, relaxed_label = extract_stress_from_subfolders(folder, relaxed_subfolders, extension, max_files,
-                                                                     shuffle,
-                                                                     chunk_size, Fs,
-                                                                     donwsample_factor,
-                                                                     Nfft, window_type, label_val=0)
-
     active_subfolders = ['activity-anxionsness']
-    active_features, active_label = extract_stress_from_subfolders(folder, active_subfolders, extension, max_files,
-                                                                   shuffle,
-                                                                   chunk_size, Fs,
-                                                                   donwsample_factor,
-                                                                   Nfft, window_type, label_val=1)
 
-    X = np.concatenate((relaxed_features, active_features), axis=0)
+    use_freq = False
+
+    if use_freq:
+        relaxed_features, relaxed_label = extract_stress_from_subfolders(folder, relaxed_subfolders, extension,
+                                                                         max_files,
+                                                                         shuffle,
+                                                                         chunk_size, Fs,
+                                                                         donwsample_factor,
+                                                                         Nfft, window_type, label_val=0)
+
+        active_features, active_label = extract_stress_from_subfolders(folder, active_subfolders, extension, max_files,
+                                                                       shuffle,
+                                                                       chunk_size, Fs,
+                                                                       donwsample_factor,
+                                                                       Nfft, window_type, label_val=1)
+    else:
+        relaxed_features, relaxed_label = extract_from_subfolders(folder, relaxed_subfolders, extension, max_files,
+                                                                  chunk_size,
+                                                                  n_pca=None,
+                                                                  label_val=0)
+
+        active_features, active_label = extract_from_subfolders(folder, active_subfolders, extension, max_files,
+                                                                chunk_size,
+                                                                n_pca=None,
+                                                                label_val=1)
+
+    X = np.concatenate((relaxed_features.T, active_features.T), axis=0)
     y = np.concatenate((relaxed_label, active_label))
 
     n_pca = None
@@ -100,4 +118,13 @@ if __name__ == '__main__':
 
         X = pca.components_.T
 
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
 
+    clf = svm.SVC()
+    # clf = svm.NuSVC(gamma="auto")
+    clf.fit(X_train, y_train)
+
+    pred = clf.predict(X_test)
+    acc = accuracy_score(pred, y_test)
+    # TODO save the model
+    print('Accuracy = {:.2f}'.format(acc))
