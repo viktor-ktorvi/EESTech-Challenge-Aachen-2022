@@ -31,14 +31,15 @@ def chunk_fft(x_downsampled, Fs, donwsample_factor, Nfft, window_type, columns, 
 
         highest_peaks = sorted_peaks[:num_peaks]
 
-        ax_fft[i].set_title(column)
-        ax_fft[i].plot(right_faxis, right_side_amp)
-        ax_fft[i].scatter(right_faxis[highest_peaks], right_side_amp[highest_peaks], color='r')
+        if show:
+            ax_fft[i].set_title(column)
+            ax_fft[i].plot(right_faxis, right_side_amp)
+            ax_fft[i].scatter(right_faxis[highest_peaks], right_side_amp[highest_peaks], color='r')
 
         peak_freqs[column] = right_faxis[highest_peaks]
 
-    fig_fft.tight_layout()
     if show:
+        fig_fft.tight_layout()
         fig_fft.show()
 
     return peak_freqs
