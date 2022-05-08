@@ -13,8 +13,9 @@ def chunk_fft(x_downsampled, Fs, donwsample_factor, Nfft, window_type, columns, 
               title='Frequency'):
     right_lim = int(np.floor(Nfft / 2))
 
-    fig_fft, ax_fft = plt.subplots(len(columns), 1)
-    fig_fft.suptitle(title)
+    if show:
+        fig_fft, ax_fft = plt.subplots(len(columns), 1)
+        fig_fft.suptitle(title)
 
     peak_freqs = {}
 
