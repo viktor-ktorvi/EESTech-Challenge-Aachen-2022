@@ -54,6 +54,7 @@ if __name__ == '__main__':
 
     fs_downsampled = Fs / 100
     # TODO it seems to be better to filter a downsampled signal. Try it out
+    #  or no? maybe the visualization has bas resolution. We have to try it out
 
     plt.figure()
     plt.title('Different filer orders for heart rate')
