@@ -12,6 +12,9 @@ from tqdm import tqdm
 from matplotlib import pyplot as plt
 from sklearn import svm
 from train_moving_detection import extract_from_subfolders
+import json
+from joblib import dump
+import datetime
 
 
 def extract_stress_features(dfs, chunk_size, Fs, donwsample_factor, Nfft, window_type):
@@ -126,5 +129,16 @@ if __name__ == '__main__':
 
     pred = clf.predict(X_test)
     acc = accuracy_score(pred, y_test)
-    # TODO save the model
+
     print('Accuracy = {:.2f}'.format(acc))
+
+    hyperparams = {'chunk_size': chunk_size, 'n_pca': n_pca}
+    datetime_now = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+
+    savepath = 'stress_svm_acc_{:d}_'.format(round(acc * 100)) + datetime_now
+    os.mkdir(savepath, 0o666)
+
+    with open(os.path.join(savepath, 'hyperparams.json'), 'w') as fp:
+        json.dump(hyperparams, fp)
+
+    dump(clf, os.path.join(savepath, 'model.joblib'))
