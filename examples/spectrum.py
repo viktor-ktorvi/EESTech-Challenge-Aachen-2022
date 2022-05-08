@@ -3,9 +3,7 @@ from scipy import signal
 from matplotlib import pyplot as plt
 
 
-def my_fft(x, Fs, donwsample_factor=1, Nfft=1024, window_type=None):
-    x_downsampled = x[::donwsample_factor]
-
+def my_fft(x_downsampled, Fs, donwsample_factor=1, Nfft=1024, window_type=None):
     if window_type is None:
         window = np.ones(len(x_downsampled))
     elif window_type == 'hamming':
@@ -43,7 +41,7 @@ if __name__ == '__main__':
     """
     Fs = 1000
     t = np.arange(start=0, stop=3, step=1 / Fs)
-    f = [0.5, 2]
+    f = [0.5, 1.5]
     a = [1, 4]
     x = 0
     # TODO add noise. Or just look at the real signal
@@ -52,7 +50,10 @@ if __name__ == '__main__':
 
     flim = 5
 
-    fs_downsampled = Fs / 100
+    donwsample_factor = 100
+    Nfft = 2 ** 14
+
+    fs_downsampled = Fs / donwsample_factor
     # TODO it seems to be better to filter a downsampled signal. Try it out
     #  or no? maybe the visualization has bas resolution. We have to try it out
 
@@ -80,18 +81,15 @@ if __name__ == '__main__':
     plt.legend()
     plt.show()
 
-    b, a = butter_bandpass(lowcut=0.8, highcut=2, fs=Fs, order=3)
-    x = signal.filtfilt(b, a, x)
-
     plt.figure()
     plt.plot(t, x)
     plt.show()
 
-    # TODO what does range fft do? I don't think it does fft just in a small range
-    donwsample_factor = 100
-    Nfft = 2 ** 14
+    b, a = butter_bandpass(lowcut=0.8, highcut=2, fs=Fs, order=3)
+    x = signal.filtfilt(b, a, x)
 
-    amp, phase, faxis = my_fft(x, Fs, donwsample_factor, Nfft, window_type='hamming')
+    x_downsampled = x[::donwsample_factor]
+    amp, phase, faxis = my_fft(x_downsampled, Fs, donwsample_factor, Nfft, window_type='hamming')
 
     fig, ax = plt.subplots(2, 1)
     ax[0].plot(faxis, amp)
@@ -111,7 +109,7 @@ if __name__ == '__main__':
     sorted_peak_indices = np.argsort(right_side_amp[peaks[0]])[::-1]
     sorted_peaks = peaks[0][sorted_peak_indices]
 
-    highest_peaks = sorted_peaks[:2]
+    highest_peaks = sorted_peaks[:1]
 
     plt.figure()
     plt.plot(faxis[:right_lim], right_side_amp)
