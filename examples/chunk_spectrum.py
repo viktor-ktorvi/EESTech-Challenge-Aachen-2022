@@ -19,7 +19,6 @@ def chunk_fft(x_downsampled, Fs, donwsample_factor, Nfft, window_type, columns, 
     peak_freqs = {}
 
     for i, column in enumerate(columns):
-        # TODO downsample outside of fft
         amp, phase, faxis = my_fft(x_downsampled[column].to_numpy(), Fs, donwsample_factor, Nfft,
                                    window_type=window_type)
         right_side_amp = amp[:right_lim]
@@ -72,8 +71,6 @@ if __name__ == '__main__':
 
     chunk = chunks[30]
 
-    # TODO Filter signal
-
     # time
     fig_time, ax_time = plt.subplots(len(chunk.columns), 1)
 
@@ -93,6 +90,8 @@ if __name__ == '__main__':
     peak_freqs_no_filtering = chunk_fft(x_downsampled, Fs, donwsample_factor, Nfft, window_type, columns=chunk.columns,
                                         show=True,
                                         num_peaks=2, title='No filtering')
+
+    # TODO Downsample before filtering?
 
     b_heart, a_heart = butter_bandpass(lowcut=0.8, highcut=2, fs=Fs, order=3)
     b_breath, a_breath = butter_bandpass(lowcut=0.2, highcut=0.5, fs=Fs, order=3)
