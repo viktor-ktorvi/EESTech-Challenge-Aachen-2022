@@ -7,6 +7,18 @@ from tqdm import tqdm
 from sklearn.decomposition import PCA
 
 
+def get_chunks(dfs, chunk_size, subtract_mean=True):
+    chunks = []
+    for i in range(len(dfs)):
+        chunks += np.array_split(dfs[i], len(dfs[i]) // chunk_size)
+
+    if subtract_mean:
+        for i in tqdm(range(len(chunks))):
+            chunks[i] -= chunks[i].mean()
+
+    return chunks
+
+
 def extract_features(dfs, chunk_size, n_pca=None, subtract_mean=True):
     chunks = []
     for i in range(len(dfs)):

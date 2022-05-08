@@ -2,6 +2,26 @@ import numpy as np
 from scipy import signal
 from matplotlib import pyplot as plt
 
+
+def my_fft(x, Fs, donwsample_factor=1, Nfft=1024, window_type=None):
+    x_downsampled = x[::donwsample_factor]
+
+    if window_type is None:
+        window = np.ones(len(x_downsampled))
+    elif window_type == 'hamming':
+        window = np.hamming(len(x_downsampled))
+    else:
+        raise NotImplementedError()
+
+    fourier = np.fft.fft(x_downsampled * window, n=Nfft)
+    amp = np.abs(fourier * 2 / len(x_downsampled))
+    phase = np.angle(fourier)
+
+    faxis = np.fft.fftfreq(n=Nfft) * Fs / donwsample_factor
+
+    return amp, phase, faxis
+
+
 if __name__ == '__main__':
     """
     0. Do we bandpass filter before hand? Yeah, why not?
@@ -15,7 +35,7 @@ if __name__ == '__main__':
     """
     Fs = 1000
     t = np.arange(start=0, stop=3, step=1 / Fs)
-    f = [0.35, 1.4]
+    f = [0.5, 2]
     a = [1, 4]
     x = 0
     # TODO add noise. Or just look at the real signal
@@ -30,15 +50,9 @@ if __name__ == '__main__':
 
     # TODO what does range fft do? I don't think it does fft just in a small range
     donwsample_factor = 100
-    x_downsampled = x[::donwsample_factor]
-    Nfft = 2 ** 8
-    window = np.hamming(len(x_downsampled))
-    # window = np.ones(len(x_downsampled))
-    fourier = np.fft.fft(x_downsampled * window, n=Nfft)
-    amp = np.abs(fourier * 2 / len(x_downsampled))
-    phase = np.angle(fourier)
+    Nfft = 2 ** 14
 
-    faxis = np.fft.fftfreq(n=Nfft) * Fs / donwsample_factor
+    amp, phase, faxis = my_fft(x, Fs, donwsample_factor, Nfft, window_type='hamming')
 
     fig, ax = plt.subplots(2, 1)
     ax[0].plot(faxis, amp)
