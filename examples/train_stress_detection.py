@@ -5,9 +5,11 @@ from stats import get_chunks
 import os
 import pandas as pd
 from spectrum import butter_bandpass
+from sklearn.model_selection import train_test_split
 from chunk_spectrum import filter_dataframe, chunk_fft
 from tqdm import tqdm
 from matplotlib import pyplot as plt
+from sklearn import svm
 
 
 def extract_stress_features(dfs, chunk_size, Fs, donwsample_factor, Nfft, window_type):
@@ -100,4 +102,9 @@ if __name__ == '__main__':
 
         X = pca.components_.T
 
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
 
+    clf = svm.SVC()
+    clf.fit(X_train, y_train)
+
+    pred = clf.predict(X_test)
