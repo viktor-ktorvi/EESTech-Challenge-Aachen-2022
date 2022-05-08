@@ -4,21 +4,26 @@ import os
 from utils import load_radar_dict, get_all_files, get_filenames
 
 
-def plot_recording(radar_files_dict, fig, ax, color=None):
+def plot_recording(radar_files_dict, fig, ax, color=None, xlim=None):
     assert len(ax) == 4
     for i in range(3):
         ax[i].plot(radar_files_dict['abses'][i, :], color=color)
         ax[i].set_title('Abses {:d}'.format(i))
 
+        if xlim is not None:
+            ax[i].set_xlim(xlim)
+
     ax[3].plot(radar_files_dict['phases'], color=color)
     ax[3].set_title('Phases')
+    if xlim is not None:
+        ax[3].set_xlim(xlim)
 
     fig.tight_layout()
 
     return fig
 
 
-def visualize(folder, filenames, title, colors=None, figsize=None):
+def visualize(folder, filenames, title, colors=None, figsize=None, xlim=None):
     """
     Visualize one or multiple recordings. Plots abses[0..2] and phase
     :param folder: str
@@ -44,7 +49,7 @@ def visualize(folder, filenames, title, colors=None, figsize=None):
     fig.suptitle(title)
     for i in range(len(filenames)):
         radar_files_dict = load_radar_dict(folder, filenames[i])
-        fig = plot_recording(radar_files_dict, fig, ax, color=colors[i])
+        fig = plot_recording(radar_files_dict, fig, ax, color=colors[i], xlim=xlim)
 
     return fig
 
@@ -59,6 +64,7 @@ def compare_within_class(data_folder, subfolder, extension, max_files, figsize, 
                     figsize=figsize)
 
     return filenames
+
 
 # %%
 if __name__ == '__main__':
