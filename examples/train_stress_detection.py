@@ -126,5 +126,5 @@ if __name__ == '__main__':
 
     pred = clf.predict(X_test)
     acc = accuracy_score(pred, y_test)
-
+    # TODO save the model
     print('Accuracy = {:.2f}'.format(acc))
